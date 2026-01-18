@@ -16,7 +16,6 @@
   --text:#e9edef;
   --muted:#8696a0;
 }
-
 *{box-sizing:border-box;font-family:system-ui}
 body{
   margin:0;
@@ -25,7 +24,7 @@ body{
   height:100vh;
 }
 
-/* ===== HEADER ===== */
+/* HEADER */
 .header{
   height:56px;
   background:var(--header);
@@ -35,10 +34,9 @@ body{
   font-weight:600;
 }
 
-/* ===== CHAT LIST ===== */
+/* CHAT LIST */
 .dialogs{
   height:calc(100vh - 56px);
-  overflow-y:auto;
 }
 .dialog{
   display:flex;
@@ -47,21 +45,16 @@ body{
   border-bottom:1px solid #1f2c34;
 }
 .avatar{
-  width:48px;
-  height:48px;
-  border-radius:50%;
-  background:var(--accent);
-  color:#000;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  width:48px;height:48px;border-radius:50%;
+  background:var(--accent);color:#000;
+  display:flex;align-items:center;justify-content:center;
   font-weight:700;
 }
 .dialog-info{flex:1}
 .dialog-name{font-weight:600}
 .dialog-last{font-size:13px;color:var(--muted)}
 
-/* ===== CHAT ===== */
+/* CHAT */
 .chat{
   position:fixed;
   inset:0;
@@ -70,7 +63,6 @@ body{
   flex-direction:column;
 }
 .chat.active{display:flex}
-
 .chat-header{
   height:56px;
   background:var(--header);
@@ -80,12 +72,8 @@ body{
   padding:0 12px;
 }
 .chat-header button{
-  background:none;
-  border:none;
-  color:white;
-  font-size:20px;
+  background:none;border:none;color:white;font-size:20px;
 }
-
 .messages{
   flex:1;
   padding:12px;
@@ -94,33 +82,21 @@ body{
   flex-direction:column;
   gap:8px;
 }
-
 .message{
   max-width:75%;
   padding:10px 12px;
   border-radius:8px;
-  font-size:15px;
 }
-.me{
-  align-self:flex-end;
-  background:var(--me);
-}
-.other{
-  align-self:flex-start;
-  background:var(--other);
-}
+.me{align-self:flex-end;background:var(--me)}
+.other{align-self:flex-start;background:var(--other)}
 .time{
-  font-size:11px;
-  color:var(--muted);
-  text-align:right;
-  margin-top:4px;
+  font-size:11px;color:var(--muted);text-align:right;margin-top:4px;
 }
 
-/* ===== INPUT ===== */
+/* INPUT */
 .input{
   height:56px;
   display:flex;
-  align-items:center;
   gap:8px;
   padding:0 10px;
   background:var(--header);
@@ -132,8 +108,7 @@ body{
   border:none;
 }
 .input button{
-  width:40px;
-  height:40px;
+  width:40px;height:40px;
   border-radius:50%;
   border:none;
   background:var(--accent);
@@ -143,16 +118,15 @@ body{
 
 <body>
 
-<!-- CHAT LIST -->
+<!-- LIST -->
 <div id="list">
   <div class="header">Чаты</div>
-
   <div class="dialogs">
     <div class="dialog" onclick="openChat()">
       <div class="avatar">А</div>
       <div class="dialog-info">
         <div class="dialog-name">Алиса</div>
-        <div class="dialog-last">Привет 👋</div>
+        <div class="dialog-last" id="lastMsg">Нет сообщений</div>
       </div>
     </div>
   </div>
@@ -165,30 +139,64 @@ body{
     <span>Алиса</span>
   </div>
 
-  <div class="messages" id="messages">
-    <div class="message other">
-      Привет 👋
-      <div class="time">12:01</div>
-    </div>
-    <div class="message me">
-      Привет!
-      <div class="time">12:02</div>
-    </div>
-  </div>
+  <div class="messages" id="messages"></div>
 
   <div class="input">
-    <input placeholder="Сообщение…">
-    <button>➤</button>
+    <input id="text" placeholder="Сообщение…">
+    <button onclick="send()">➤</button>
   </div>
 </div>
 
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
 <script>
+/* 🔥 ВСТАВЬ СВОИ ДАННЫЕ ИЗ FIREBASE */
+const firebaseConfig = {
+  apiKey: "PASTE_HERE",
+  authDomain: "PASTE_HERE",
+  databaseURL: "PASTE_HERE",
+  projectId: "PASTE_HERE",
+  storageBucket: "PASTE_HERE",
+  messagingSenderId: "PASTE_HERE",
+  appId: "PASTE_HERE"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const chatRef = db.ref("chat");
+
+/* UI */
 function openChat(){
   document.getElementById('chat').classList.add('active');
 }
 function closeChat(){
   document.getElementById('chat').classList.remove('active');
 }
+
+/* SEND */
+function send(){
+  const input = document.getElementById('text');
+  if(!input.value.trim()) return;
+
+  chatRef.push({
+    text: input.value,
+    time: new Date().toLocaleTimeString().slice(0,5),
+    me: true
+  });
+  input.value='';
+}
+
+/* LISTEN */
+chatRef.on("child_added", snap=>{
+  const msg = snap.val();
+  const div = document.createElement("div");
+  div.className = "message " + (msg.me ? "me":"other");
+  div.innerHTML = `${msg.text}<div class="time">${msg.time}</div>`;
+  document.getElementById("messages").appendChild(div);
+  document.getElementById("lastMsg").innerText = msg.text;
+});
 </script>
 
 </body>
