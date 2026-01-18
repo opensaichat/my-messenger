@@ -1,1 +1,195 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Messenger</title>
 
+<style>
+:root{
+  --bg:#0b141a;
+  --header:#202c33;
+  --panel:#111b21;
+  --accent:#25d366;
+  --me:#005c4b;
+  --other:#202c33;
+  --text:#e9edef;
+  --muted:#8696a0;
+}
+
+*{box-sizing:border-box;font-family:system-ui}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  height:100vh;
+}
+
+/* ===== HEADER ===== */
+.header{
+  height:56px;
+  background:var(--header);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:600;
+}
+
+/* ===== CHAT LIST ===== */
+.dialogs{
+  height:calc(100vh - 56px);
+  overflow-y:auto;
+}
+.dialog{
+  display:flex;
+  gap:12px;
+  padding:12px;
+  border-bottom:1px solid #1f2c34;
+}
+.avatar{
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  background:var(--accent);
+  color:#000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+}
+.dialog-info{flex:1}
+.dialog-name{font-weight:600}
+.dialog-last{font-size:13px;color:var(--muted)}
+
+/* ===== CHAT ===== */
+.chat{
+  position:fixed;
+  inset:0;
+  background:var(--panel);
+  display:none;
+  flex-direction:column;
+}
+.chat.active{display:flex}
+
+.chat-header{
+  height:56px;
+  background:var(--header);
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:0 12px;
+}
+.chat-header button{
+  background:none;
+  border:none;
+  color:white;
+  font-size:20px;
+}
+
+.messages{
+  flex:1;
+  padding:12px;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.message{
+  max-width:75%;
+  padding:10px 12px;
+  border-radius:8px;
+  font-size:15px;
+}
+.me{
+  align-self:flex-end;
+  background:var(--me);
+}
+.other{
+  align-self:flex-start;
+  background:var(--other);
+}
+.time{
+  font-size:11px;
+  color:var(--muted);
+  text-align:right;
+  margin-top:4px;
+}
+
+/* ===== INPUT ===== */
+.input{
+  height:56px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:0 10px;
+  background:var(--header);
+}
+.input input{
+  flex:1;
+  padding:12px;
+  border-radius:20px;
+  border:none;
+}
+.input button{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  border:none;
+  background:var(--accent);
+}
+</style>
+</head>
+
+<body>
+
+<!-- CHAT LIST -->
+<div id="list">
+  <div class="header">Чаты</div>
+
+  <div class="dialogs">
+    <div class="dialog" onclick="openChat()">
+      <div class="avatar">А</div>
+      <div class="dialog-info">
+        <div class="dialog-name">Алиса</div>
+        <div class="dialog-last">Привет 👋</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div id="chat" class="chat">
+  <div class="chat-header">
+    <button onclick="closeChat()">←</button>
+    <span>Алиса</span>
+  </div>
+
+  <div class="messages" id="messages">
+    <div class="message other">
+      Привет 👋
+      <div class="time">12:01</div>
+    </div>
+    <div class="message me">
+      Привет!
+      <div class="time">12:02</div>
+    </div>
+  </div>
+
+  <div class="input">
+    <input placeholder="Сообщение…">
+    <button>➤</button>
+  </div>
+</div>
+
+<script>
+function openChat(){
+  document.getElementById('chat').classList.add('active');
+}
+function closeChat(){
+  document.getElementById('chat').classList.remove('active');
+}
+</script>
+
+</body>
+</html>
