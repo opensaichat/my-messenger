@@ -58,11 +58,13 @@ button{background:var(--accent);font-weight:600}
   gap:12px;
   padding:12px;
   border-bottom:1px solid #1f2c34;
+  cursor:pointer;
 }
 .avatar{
   width:48px;height:48px;border-radius:50%;
   background:var(--accent);color:#000;
-  display:flex;align-items:center;justify-content:center;font-weight:700
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700
 }
 .dialog-name{font-weight:600}
 .dialog-last{font-size:13px;color:var(--muted)}
@@ -70,6 +72,7 @@ button{background:var(--accent);font-weight:600}
 /* CHAT */
 .chat{position:fixed;inset:0;background:var(--panel);display:none;flex-direction:column}
 .chat.active{display:flex}
+
 .chat-header{
   height:56px;background:var(--header);
   display:flex;align-items:center;gap:12px;padding:0 12px
@@ -108,22 +111,14 @@ button{background:var(--accent);font-weight:600}
 <!-- CHAT LIST -->
 <div id="list" style="display:none">
   <div class="header">Чаты</div>
-  <div class="dialogs">
-    <div class="dialog" onclick="openChat('global')">
-      <div class="avatar">💬</div>
-      <div>
-        <div class="dialog-name">Общий чат</div>
-        <div class="dialog-last">Онлайн</div>
-      </div>
-    </div>
-  </div>
+  <div class="dialogs" id="dialogs"></div>
 </div>
 
 <!-- CHAT -->
 <div id="chat" class="chat">
   <div class="chat-header">
     <button onclick="closeChat()">←</button>
-    <span>Общий чат</span>
+    <span id="chatName">Общий чат</span>
   </div>
 
   <div id="messages" class="messages"></div>
@@ -163,37 +158,55 @@ window.login = ()=>{
 }
 
 function start(){
-  login.style.display='none';
-  list.style.display='block';
+  document.getElementById('login').style.display='none';
+  document.getElementById('list').style.display='block';
+  renderDialogs();
 }
 
 if(user) start();
 
-window.openChat = ()=>{
-  list.style.display='none';
-  chat.classList.add('active');
+function renderDialogs(){
+  const dialogsEl = document.getElementById("dialogs");
+  dialogsEl.innerHTML = "";
+  const dialog = document.createElement("div");
+  dialog.className = "dialog";
+  dialog.innerHTML = `
+    <div class="avatar">💬</div>
+    <div class="dialog-info">
+      <div class="dialog-name">Общий чат</div>
+      <div class="dialog-last">Нет сообщений</div>
+    </div>
+  `;
+  dialog.onclick = () => openChat('global');
+  dialogsEl.appendChild(dialog);
+}
 
-  const chatRef = ref(db,'messages/global');
-  onChildAdded(chatRef,snap=>{
-    const m=snap.val();
-    const div=document.createElement('div');
-    div.className='message '+(m.user===user?'me':'other');
-    div.innerHTML=`${m.text}<div class="time">${m.user}</div>`;
-    messages.appendChild(div);
-    messages.scrollTop=messages.scrollHeight;
+window.openChat = (id)=>{
+  document.getElementById('list').style.display = 'none';
+  document.getElementById('chat').classList.add('active');
+  const chatName = document.getElementById('chatName');
+  chatName.textContent = "Общий чат";
+  const chatRef = ref(db, 'messages/' + id);
+  onChildAdded(chatRef, (snap) => {
+    const m = snap.val();
+    const div = document.createElement("div");
+    div.className = "message " + (m.user === user ? "me" : "other");
+    div.innerHTML = `${m.text}<div class="time">${m.user}</div>`;
+    document.getElementById("messages").appendChild(div);
+    document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
   });
 }
 
 window.closeChat = ()=>{
-  chat.classList.remove('active');
-  list.style.display='block';
+  document.getElementById('chat').classList.remove('active');
+  document.getElementById('list').style.display = 'block';
 }
 
 window.send = ()=>{
-  const t=text.value.trim();
-  if(!t) return;
-  push(ref(db,'messages/global'),{text:t,user});
-  text.value='';
+  const t = document.getElementById('text').value.trim();
+  if (!t) return;
+  push(ref(db, 'messages/global'), { text: t, user: user });
+  document.getElementById('text').value = '';
 }
 </script>
 
