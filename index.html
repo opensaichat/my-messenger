@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Messenger</title>
+<title>My Messenger</title>
 
 <style>
 :root{
@@ -17,12 +17,7 @@
   --muted:#8696a0;
 }
 *{box-sizing:border-box;font-family:system-ui}
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  height:100vh;
-}
+body{margin:0;background:var(--bg);color:var(--text);height:100vh}
 
 /* HEADER */
 .header{
@@ -34,10 +29,30 @@ body{
   font-weight:600;
 }
 
-/* CHAT LIST */
-.dialogs{
-  height:calc(100vh - 56px);
+/* LOGIN */
+.login{
+  height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
+.login-box{
+  background:var(--panel);
+  padding:20px;
+  border-radius:12px;
+  width:90%;
+}
+.login-box input,button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  border-radius:8px;
+}
+button{background:var(--accent);font-weight:600}
+
+/* LIST */
+.dialogs{height:calc(100vh - 56px);overflow-y:auto}
 .dialog{
   display:flex;
   gap:12px;
@@ -47,86 +62,58 @@ body{
 .avatar{
   width:48px;height:48px;border-radius:50%;
   background:var(--accent);color:#000;
-  display:flex;align-items:center;justify-content:center;
-  font-weight:700;
+  display:flex;align-items:center;justify-content:center;font-weight:700
 }
-.dialog-info{flex:1}
 .dialog-name{font-weight:600}
 .dialog-last{font-size:13px;color:var(--muted)}
 
 /* CHAT */
-.chat{
-  position:fixed;
-  inset:0;
-  background:var(--panel);
-  display:none;
-  flex-direction:column;
-}
+.chat{position:fixed;inset:0;background:var(--panel);display:none;flex-direction:column}
 .chat.active{display:flex}
 .chat-header{
-  height:56px;
-  background:var(--header);
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:0 12px;
+  height:56px;background:var(--header);
+  display:flex;align-items:center;gap:12px;padding:0 12px
 }
-.chat-header button{
-  background:none;border:none;color:white;font-size:20px;
-}
+.chat-header button{background:none;border:none;color:white;font-size:20px}
+
 .messages{
-  flex:1;
-  padding:12px;
-  overflow-y:auto;
-  display:flex;
-  flex-direction:column;
-  gap:8px;
+  flex:1;padding:12px;overflow-y:auto;
+  display:flex;flex-direction:column;gap:8px
 }
-.message{
-  max-width:75%;
-  padding:10px 12px;
-  border-radius:8px;
-}
+.message{max-width:75%;padding:10px 12px;border-radius:8px}
 .me{align-self:flex-end;background:var(--me)}
 .other{align-self:flex-start;background:var(--other)}
-.time{
-  font-size:11px;color:var(--muted);text-align:right;margin-top:4px;
-}
+.time{font-size:11px;color:var(--muted);text-align:right}
 
 /* INPUT */
 .input{
-  height:56px;
-  display:flex;
-  gap:8px;
-  padding:0 10px;
-  background:var(--header);
+  height:56px;display:flex;align-items:center;
+  gap:8px;padding:0 10px;background:var(--header)
 }
-.input input{
-  flex:1;
-  padding:12px;
-  border-radius:20px;
-  border:none;
-}
-.input button{
-  width:40px;height:40px;
-  border-radius:50%;
-  border:none;
-  background:var(--accent);
-}
+.input input{flex:1;padding:12px;border-radius:20px;border:none}
 </style>
 </head>
 
 <body>
 
-<!-- LIST -->
-<div id="list">
+<!-- LOGIN -->
+<div id="login" class="login">
+  <div class="login-box">
+    <h3>Вход</h3>
+    <input id="username" placeholder="Твой ID (любой)">
+    <button onclick="login()">Войти</button>
+  </div>
+</div>
+
+<!-- CHAT LIST -->
+<div id="list" style="display:none">
   <div class="header">Чаты</div>
   <div class="dialogs">
-    <div class="dialog" onclick="openChat()">
-      <div class="avatar">А</div>
-      <div class="dialog-info">
-        <div class="dialog-name">Алиса</div>
-        <div class="dialog-last" id="lastMsg">Нет сообщений</div>
+    <div class="dialog" onclick="openChat('global')">
+      <div class="avatar">💬</div>
+      <div>
+        <div class="dialog-name">Общий чат</div>
+        <div class="dialog-last">Онлайн</div>
       </div>
     </div>
   </div>
@@ -136,10 +123,10 @@ body{
 <div id="chat" class="chat">
   <div class="chat-header">
     <button onclick="closeChat()">←</button>
-    <span>Алиса</span>
+    <span>Общий чат</span>
   </div>
 
-  <div class="messages" id="messages"></div>
+  <div id="messages" class="messages"></div>
 
   <div class="input">
     <input id="text" placeholder="Сообщение…">
@@ -148,55 +135,66 @@ body{
 </div>
 
 <!-- FIREBASE -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-<script>
-/* 🔥 ВСТАВЬ СВОИ ДАННЫЕ ИЗ FIREBASE */
 const firebaseConfig = {
-  apiKey: "PASTE_HERE",
-  authDomain: "PASTE_HERE",
-  databaseURL: "PASTE_HERE",
-  projectId: "PASTE_HERE",
-  storageBucket: "PASTE_HERE",
-  messagingSenderId: "PASTE_HERE",
-  appId: "PASTE_HERE"
+  apiKey: "AIzaSyC4IBbK-hdKXozT63Pa5lQvT6ujtsK_PQw",
+  authDomain: "my-messenger-f8a0e.firebaseapp.com",
+  projectId: "my-messenger-f8a0e",
+  storageBucket: "my-messenger-f8a0e.firebasestorage.app",
+  messagingSenderId: "262129090001",
+  appId: "1:262129090001:web:d229172347c232b2d3f4f0",
+  databaseURL: "https://my-messenger-f8a0e-default-rtdb.firebaseio.com"
 };
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const chatRef = db.ref("chat");
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-/* UI */
-function openChat(){
-  document.getElementById('chat').classList.add('active');
+let user = localStorage.getItem('user');
+
+window.login = ()=>{
+  const u = username.value.trim();
+  if(!u) return alert('Введите ID');
+  localStorage.setItem('user',u);
+  user=u;
+  start();
 }
-function closeChat(){
-  document.getElementById('chat').classList.remove('active');
+
+function start(){
+  login.style.display='none';
+  list.style.display='block';
 }
 
-/* SEND */
-function send(){
-  const input = document.getElementById('text');
-  if(!input.value.trim()) return;
+if(user) start();
 
-  chatRef.push({
-    text: input.value,
-    time: new Date().toLocaleTimeString().slice(0,5),
-    me: true
+window.openChat = ()=>{
+  list.style.display='none';
+  chat.classList.add('active');
+
+  const chatRef = ref(db,'messages/global');
+  onChildAdded(chatRef,snap=>{
+    const m=snap.val();
+    const div=document.createElement('div');
+    div.className='message '+(m.user===user?'me':'other');
+    div.innerHTML=`${m.text}<div class="time">${m.user}</div>`;
+    messages.appendChild(div);
+    messages.scrollTop=messages.scrollHeight;
   });
-  input.value='';
 }
 
-/* LISTEN */
-chatRef.on("child_added", snap=>{
-  const msg = snap.val();
-  const div = document.createElement("div");
-  div.className = "message " + (msg.me ? "me":"other");
-  div.innerHTML = `${msg.text}<div class="time">${msg.time}</div>`;
-  document.getElementById("messages").appendChild(div);
-  document.getElementById("lastMsg").innerText = msg.text;
-});
+window.closeChat = ()=>{
+  chat.classList.remove('active');
+  list.style.display='block';
+}
+
+window.send = ()=>{
+  const t=text.value.trim();
+  if(!t) return;
+  push(ref(db,'messages/global'),{text:t,user});
+  text.value='';
+}
 </script>
 
 </body>
